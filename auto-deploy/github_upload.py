@@ -1,26 +1,27 @@
 import requests
-from console import info
+from info import info
 from colored import Style
 
+from config_types import GitConfig, ZipConfig
 
-class github_client:
-    def __init__(self, repo: str, release_tag: str, access_token: str):
-        self.repo = repo
-        self.release_tag = release_tag
-        self.access_token = access_token
+
+class GithubClient:
+    def __init__(self, config: GitConfig):
+        self.repository = config.repository
+        self.release_tag = config.release_tag
+        self.access_token = config.access_token
         self.release = None
 
-    def get_release(self) -> dict:
+    def get_release(self) -> None:
         response = requests.get(
-            f'https://api.github.com/repos/{self.repo}/releases/tags/{self.release_tag}',
+            f'https://api.github.com/repos/{self.repository}/releases/tags/{self.release_tag}',
             headers={
                 'Authorization': f'Bearer {self.access_token}'
             }
         )
-        assert(response.status_code == 200)
+        assert response.ok
         info(f'Release {Style.bold}{self.release_tag}{Style.reset} found.')
         self.release = response.json()
-
 
     def delete_asset(self) -> None:
         """Deletes the first asset of a release."""
@@ -35,19 +36,19 @@ class github_client:
                 'Authorization': f'Bearer {self.access_token}'
             }
         )
-        assert(response.status_code == 204)
+        assert response.ok
         info(f'Asset {Style.bold}{asset["name"]}{Style.reset} from {asset["updated_at"]} deleted.')
 
-    def upload_asset(self, filename: str) -> None:
+    def upload_asset(self, config: ZipConfig) -> None:
         """Uploads a file to a release."""
         response = requests.post(
-            f'https://uploads.github.com/repos/{self.repo}/releases/{self.release["id"]}/assets?name={filename}',
+            f'https://uploads.github.com/repos/{self.repository}/releases/{self.release["id"]}/assets?name={config.filename}',
             headers={
                 'Authorization': f'Bearer {self.access_token}',
                 'Content-Type': 'application/octet-stream',
             },
-            data=open(filename, 'rb')
+            data=open(config.path + config.filename, 'rb')
         )
-        assert(response.status_code == 201)
-        info(f'Asset {Style.bold}{filename}{Style.reset} uploaded.')
+        assert response.ok
+        info(f'Asset {Style.bold}{config.filename}{Style.reset} uploaded.')
 

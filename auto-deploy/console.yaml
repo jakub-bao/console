@@ -1,0 +1,11 @@
+GithubRelease:
+  Repository: pepfar-datim/erb-processor-json
+  ReleaseTag: 2.0.0
+
+Dhis2Server:
+  BaseUrl: https://sandbox.er.datim.org
+  Auth: amZsYXNrYTpHcmVlbjE4IQ==
+
+ZipFile:
+  Filename: ERB-Processor.zip
+  Path: ./
